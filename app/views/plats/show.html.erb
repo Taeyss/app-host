@@ -40,6 +40,15 @@
       <% if @plat.bundle_id.present? %>
        包名: <%=@plat.bundle_id%>  
       <% end %>
+      <% if @plat.harmonyos? %>
+        &nbsp;|&nbsp;
+        <% if @plat.hap_cert_configured? %>
+          <span style="color:#5cb85c;">&#10003; OTA 证书已配置</span>
+        <% else %>
+          <span style="color:#e8a000;">&#9888; OTA 证书未配置，manifest 将无签名</span>
+          &nbsp;<%= link_to '去配置', edit_app_plat_path(@app, @plat), style:"font-size:12px;" %>
+        <% end %>
+      <% end %>
     </span>
   </div>
 

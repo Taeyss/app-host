@@ -32,12 +32,25 @@
 
       <% if @download_url.present? %>
         <a class="download-btn" href="<%=@download_url%>">
-          下载
+          下载<% if @pkg.harmonyos? %>安装<% end %>
         </a>
       <% else %>
         <a class="download-btn">
           无法下载
         </a>
+      <% end %>
+
+      <% if @pkg.harmonyos? %>
+        <div class="hap-manifest-hint" style="margin-top:10px;font-size:12px;color:#888;word-break:break-all;">
+          <% manifest_url = "#{request.base_url}#{manifest_hap_pkg_path(@pkg)}.json5" %>
+          <span>Manifest：<a href="<%=manifest_url%>" target="_blank"><%=manifest_url%></a></span>
+          <% unless @pkg.pkg_sha256.present? %>
+            <br><span style="color:#e8a000;">⚠ SHA-256 未计算，请重新上传该包</span>
+          <% end %>
+          <% unless @pkg.pkg_manifest_sign.present? || @pkg.plat.hap_cert_configured? %>
+            <br><span style="color:#e8a000;">⚠ Manifest 签名未填写，OTA 安装将失败。请使用 internal-testing 工具签名后，通过 API 更新 pkg_manifest_sign 字段。</span>
+          <% end %>
+        </div>
       <% end %>
 
     </div>

@@ -2,23 +2,27 @@
 #
 # Table name: pkgs
 #
-#  id             :integer          not null, primary key
-#  app_id         :integer
-#  name           :string
-#  icon           :string
-#  plat_name      :string
-#  bundle_id      :string
-#  version        :string
-#  build          :string
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  plat_id        :integer
-#  file           :string
-#  size           :integer          default(0)
-#  uniq_key       :string
-#  user_id        :integer
-#  deleted_at     :datetime
-#  file_nick_name :string
+#  id                  :integer          not null, primary key
+#  app_id              :integer
+#  name                :string
+#  icon                :string
+#  plat_name           :string
+#  bundle_id           :string
+#  version             :string
+#  build               :string
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  plat_id             :integer
+#  file                :string
+#  size                :integer          default(0)
+#  uniq_key            :string
+#  user_id             :integer
+#  deleted_at          :datetime
+#  file_nick_name      :string
+#  features            :string
+#  ext_info            :string
+#  pkg_sha256          :string           (HarmonyOS OTA 包完整性校验 SHA-256)
+#  pkg_manifest_sign   :text             (HarmonyOS OTA manifest 签名)
 #
 
 class Pkg < ApplicationRecord
@@ -39,11 +43,13 @@ class Pkg < ApplicationRecord
   mount_uploader :file, PkgUploader
 
   enum plat_name: {
-    ios: 'ios',
-    android: 'android'
+    ios:        'ios',
+    android:    'android',
+    harmonyos:  'harmonyos'
   }
 
   after_create :save_icon
+  after_create :save_sha256
   after_create :clean_tmp
 
   def initialize pars
@@ -79,9 +85,15 @@ class Pkg < ApplicationRecord
   end
 
   def save_icon
-    if app_icon&.end_with?(".png")
+    if app_icon&.match?(/\.(png|jpg|jpeg|webp)\z/i)
       self.icon.store!(File.new(app_icon))
       self.save
+    end
+  end
+
+  def save_sha256
+    if harmonyos? && file.path && File.exist?(file.path)
+      self.update_column(:pkg_sha256, Digest::SHA256.hexdigest(File.binread(file.path)))
     end
   end
 
@@ -93,7 +105,10 @@ class Pkg < ApplicationRecord
 
   def install_url
     if ios?
-      "itms-services://?action=download-manifest&url=#{Current.request.base_url}#{Rails.application.routes.url_helpers.manifest_pkg_path(self)}.plist"    
+      "itms-services://?action=download-manifest&url=#{Current.request.base_url}#{Rails.application.routes.url_helpers.manifest_pkg_path(self)}.plist"
+    elsif harmonyos?
+      manifest_url = "#{Current.request.base_url}#{Rails.application.routes.url_helpers.manifest_hap_pkg_path(self)}.json5"
+      "store://enterprise/manifest?url=#{manifest_url}"
     else
       download_url
     end
@@ -105,6 +120,10 @@ class Pkg < ApplicationRecord
 
   def display_file_name
     File.basename(file.path,".*")
+  end
+
+  def hap_meta
+    (ext_info.is_a?(Hash) ? ext_info["_meta"] : nil) || {}
   end
   
 end

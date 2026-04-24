@@ -27,6 +27,37 @@
       <%= f.select(:pkg_uniq,{'YES'=>'true','NO'=>'false'},{},{class:"form-control"}) %>
     </div>
 
+    <div id="hap-cert-fields" style="<%= 'display:none;' unless @plat.harmonyos? || params.dig(:plat, :plat_name) == 'harmonyos' %>">
+    <div class="form-group">
+      <label>鸿蒙内部测试证书（.p12）<small class="text-muted"> — 用于 OTA manifest 自动签名</small></label>
+      <% if @plat.persisted? && @plat.hap_cert.present? %>
+        <p class="help-block">
+          已上传：<code><%= File.basename(@plat.hap_cert.path.to_s) %></code>
+          &nbsp;（重新选择文件可替换）
+        </p>
+      <% end %>
+      <%= f.file_field :hap_cert, accept: ".p12" %>
+    </div>
+    <div class="form-group">
+      <label>p12 证书密码</label>
+      <%= f.password_field :hap_cert_password, class:"form-control",
+            placeholder: "留空则保持不变",
+            autocomplete: "new-password" %>
+    </div>
+    </div>
+
+    <script>
+      (function() {
+        var select = document.querySelector('select[name="plat[plat_name]"]');
+        var certFields = document.getElementById('hap-cert-fields');
+        if (select && certFields) {
+          select.addEventListener('change', function() {
+            certFields.style.display = this.value === 'harmonyos' ? '' : 'none';
+          });
+        }
+      })();
+    </script>
+
     <% if @plat.persisted? %>
       <%=f.submit "保存", class:"btn btn-primary ui-plat"%>
     <% else %>

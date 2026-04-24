@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   resources :pkgs, only:[:show] do
     member do
       get :manifest
+      get :manifest_hap
     end
   end
 

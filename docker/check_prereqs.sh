@@ -22,10 +22,14 @@ if [[ $existing != "" ]]; then
   echo "$secret_text" > $secret_file
 fi
 
-rm db/production.sqlite3
+rm -f db/production.sqlite3
+
 if [[ ! -f /app/shared/production.sqlite3 ]]; then
-  ./bin/bundle exec rake db:migrate
-  mv db/production.sqlite3 /app/shared/production.sqlite3
+  # 首次部署：先建库再迁移
+  touch /app/shared/production.sqlite3
 fi
 
 ln -sf /app/shared/production.sqlite3 db/production.sqlite3
+
+# 每次启动都执行迁移（幂等，升级时自动更新表结构）
+RAILS_ENV=production ./bin/bundle exec rake db:migrate

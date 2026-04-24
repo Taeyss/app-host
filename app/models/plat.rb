@@ -27,10 +27,17 @@ class Plat < ApplicationRecord
 
   validates_presence_of :user_id
 
+  mount_uploader :hap_cert, HapCertUploader
+
   enum plat_name: {
-    ios: 'ios',
-    android: 'android'
+    ios:        'ios',
+    android:    'android',
+    harmonyos:  'harmonyos'
   }
+
+  def hap_cert_configured?
+    harmonyos? && hap_cert.present? && hap_cert_password.present?
+  end
 
 
   def bundle_id_reg

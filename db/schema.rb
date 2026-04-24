@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_21_074133) do
+ActiveRecord::Schema.define(version: 2026_04_23_000002) do
 
   create_table "apps", force: :cascade do |t|
     t.string "name"
@@ -49,6 +49,8 @@ ActiveRecord::Schema.define(version: 2021_01_21_074133) do
     t.string "file_nick_name"
     t.string "features"
     t.string "ext_info"
+    t.string "pkg_sha256"
+    t.text   "pkg_manifest_sign"
     t.index ["deleted_at"], name: "index_pkgs_on_deleted_at"
   end
 
@@ -65,6 +67,8 @@ ActiveRecord::Schema.define(version: 2021_01_21_074133) do
     t.integer "user_id"
     t.datetime "deleted_at"
     t.integer "sort", default: 0
+    t.string  "hap_cert"
+    t.string  "hap_cert_password"
     t.index ["deleted_at"], name: "index_plats_on_deleted_at"
   end
 

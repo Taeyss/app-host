@@ -18,11 +18,24 @@ class PkgsController < ApplicationController
     end
   end
 
-  #ios install manifest file
+  # iOS OTA manifest plist
   def manifest
     @pkg = Pkg.find params[:id]
-    stream = render_to_string(:template=>"pkgs/manifest.xml" )  
+    stream = render_to_string(:template=>"pkgs/manifest.xml")
     render xml: stream
+  end
+
+  # HarmonyOS OTA manifest json5
+  def manifest_hap
+    @pkg     = Pkg.find params[:id]
+    service  = HapManifestService.new(@pkg, request.base_url)
+    json_str = service.to_json
+
+    if service.sign_error.present?
+      logger.warn "[HapManifest] pkg##{@pkg.id} 签名失败: #{service.sign_error}"
+    end
+
+    render plain: json_str, content_type: 'application/json', layout: false
   end
 
   def new
@@ -35,7 +48,7 @@ class PkgsController < ApplicationController
     pkg.app_id = pkg.plat.app_id
 
     unless pkg_params[:file_nick_name].present?
-      pkg.file_nick_name = pkg.display_file_name
+      pkg.file_nick_name = pkg.name.presence || pkg.display_file_name
     end
 
     @plat.validate_pkg(pkg)
@@ -70,11 +83,11 @@ class PkgsController < ApplicationController
 
     plat = Plat.find params[:plat_id]
 
-    pkg = Pkg.new({file:params[:file], user_id:user.id, plat_id:plat.id, file_nick_name:params[:file_nick_name],features:params[:features]})
+    pkg = Pkg.new({file:params[:file], user_id:user.id, plat_id:plat.id, file_nick_name:params[:file_nick_name],features:params[:features],pkg_manifest_sign:params[:pkg_manifest_sign]})
     pkg.app_id = pkg.plat.app_id
 
     unless params[:file_nick_name].present?
-      pkg.file_nick_name = pkg.display_file_name
+      pkg.file_nick_name = pkg.name.presence || pkg.display_file_name
     end
 
     plat.validate_pkg(pkg)
@@ -96,6 +109,6 @@ class PkgsController < ApplicationController
 
   # # Never trust parameters from the scary internet, only allow the white list through.
   def pkg_params
-    params.require(:pkg).permit(:file,:plat_id,:file_nick_name,:features)
+    params.require(:pkg).permit(:file,:plat_id,:file_nick_name,:features,:pkg_manifest_sign)
   end
 end

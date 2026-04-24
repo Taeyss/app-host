@@ -43,7 +43,10 @@ class PlatsController < ApplicationController
 
   def update
     authorize!(:update, @plat)
-    @plat.update(plat_params)
+    attrs = plat_params
+    # 密码留空时不覆盖已有密码
+    attrs = attrs.except(:hap_cert_password) if attrs[:hap_cert_password].blank?
+    @plat.update(attrs)
     redirect_to app_plat_path @plat.app, @plat
   end
 
@@ -70,6 +73,7 @@ class PlatsController < ApplicationController
 
   # # Never trust parameters from the scary internet, only allow the white list through.
   def plat_params
-    params.require(:plat).permit(:name,:app_id,:plat_name,:bundle_id,:pkg_uniq);
+    params.require(:plat).permit(:name,:app_id,:plat_name,:bundle_id,:pkg_uniq,
+                                  :hap_cert,:hap_cert_password)
   end
 end

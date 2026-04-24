@@ -20,6 +20,15 @@
       <label for="features">变更描述</label>
       <%= f.text_area :features, class:"form-control", placeholder:"描述该包修改细节" %>
     </div>
+
+    <% if @plat.harmonyos? %>
+    <div class="form-group">
+      <label for="pkg_manifest_sign">
+        Manifest 签名 <small class="text-muted">（可选，用于鸿蒙 OTA 安装，需使用 internal-testing 工具生成）</small>
+      </label>
+      <%= f.text_area :pkg_manifest_sign, class:"form-control", rows:3, placeholder:"MEUCIBEc..." %>
+    </div>
+    <% end %>
     
     <%=f.submit "上传", class:"btn btn-primary ui-plat"%>
   <%end%>

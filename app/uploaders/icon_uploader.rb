@@ -18,10 +18,23 @@ class IconUploader < CarrierWave::Uploader::Base
     "/default_app_icon.png"
   end
 
-  # Add a white list of extensions which are allowed to be uploaded.
-  # For images you might use something like this:
+  # webp 转 png，统一存储为 png
+  process :convert_to_png
+
+  def convert_to_png
+    return unless file && %w[webp jpg jpeg].include?(file.extension.to_s.downcase)
+    manipulate! do |img|
+      img.format('png')
+      img
+    end
+  end
+
+  def filename
+    "#{File.basename(super, '.*')}.png" if original_filename
+  end
+
   def extension_whitelist
-    %w(png)
+    %w(png jpg jpeg webp)
   end
 
 
