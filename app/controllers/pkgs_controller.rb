@@ -13,8 +13,16 @@ class PkgsController < ApplicationController
       @history[time_str] ||= []
       @history[time_str] << e
     end
-    unless (browser.platform.ios? && !@pkg.ios?) || (browser.platform.android? && !@pkg.android?)
-      @download_url = (browser.platform.android? || browser.platform.ios?) ? @pkg.install_url : @pkg.download_url
+    harmonyos_device = browser.ua.to_s =~ /HarmonyOS/i
+    unless (browser.platform.ios? && !@pkg.ios?) ||
+           (browser.platform.android? && !@pkg.android? && !@pkg.harmonyos?)
+      @download_url = if browser.platform.ios?
+                        @pkg.install_url
+                      elsif browser.platform.android? || harmonyos_device
+                        @pkg.install_url
+                      else
+                        @pkg.download_url
+                      end
     end
   end
 
