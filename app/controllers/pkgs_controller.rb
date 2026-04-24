@@ -13,7 +13,7 @@ class PkgsController < ApplicationController
       @history[time_str] ||= []
       @history[time_str] << e
     end
-    harmonyos_device = browser.ua.to_s =~ /HarmonyOS/i
+    harmonyos_device = browser.ua.to_s =~ /HarmonyOS|OpenHarmony/i
     unless (browser.platform.ios? && !@pkg.ios?) ||
            (browser.platform.android? && !@pkg.android? && !@pkg.harmonyos?)
       @download_url = if browser.platform.ios?
